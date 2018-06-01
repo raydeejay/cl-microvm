@@ -48,9 +48,12 @@
 
 ;; there are 32 available operators, 4 are unassigned
 
-(define-opcode #x02 push (arg))
+(define-opcode #x02 push (addr)
+  (push (elt (memory vm) addr) (stack vm)))
 
-(define-opcode #x03 pop (arg))
+(define-opcode #x03 pop (addr)
+  (setf (elt (memory vm) addr)
+        (pop (stack vm))))
 
 (define-opcode #x04 call (addr)
   (push (pc vm) (stack vm))
