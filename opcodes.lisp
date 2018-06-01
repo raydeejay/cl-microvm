@@ -98,7 +98,11 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 2OP
-(define-opcode #x10 mov (arg0 arg1))
+(define-opcode #x10 mov (arg0 arg1)
+  ;; hacked together implementation, needs more work
+  ;; read value arg1, place at address arg0
+  ;; when address is lower than 16, use a register?
+  (setf (elt (memory vm) arg0) arg1))
 
 (define-opcode #x11 add (dest src))
 
