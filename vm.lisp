@@ -76,7 +76,7 @@ address."
 
 (defmethod run ((vm microvm) &optional (address 0))
   "Execute code until the opcode is RET when the stack is empty."
-  (loop :initially (setf (pc vm) address)
-     (setf (stack vm) (list address))
+  (loop :initially (setf (pc vm) address
+                         (stack vm) (list address))
      :while (stack vm)
      :doing (cycle vm)))
