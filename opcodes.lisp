@@ -14,7 +14,7 @@
 (defparameter *opcode-names* (make-array '(32) :initial-element 'illegal))
 
 (defmacro define-opcode (number name args &body body)
-  `(let ((fn (lambda ,args ,@body)))
+  `(let ((fn (lambda (vm ,@args) ,@body)))
      (setf (elt *opcodes* ,number) fn
            (elt *opcode-names* ,number) ',name)))
 
