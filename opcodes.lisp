@@ -23,7 +23,8 @@
 ;; 0OP
 (define-opcode #x00 nop ())
 
-(define-opcode #x01 ret ())
+(define-opcode #x01 ret ()
+  (setf (pc vm) (pop (stack vm))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 1OP
@@ -51,7 +52,9 @@
 
 (define-opcode #x03 pop (arg))
 
-(define-opcode #x04 call (addr))
+(define-opcode #x04 call (addr)
+  (push (pc vm) (stack vm))
+  (setf (pc vm) addr))
 
 (define-opcode #x05 inc (arg))
 
