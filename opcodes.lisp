@@ -93,8 +93,8 @@
 
 (define-opcode #x0e jle (address))
 
-(define-opcode #x0f prn (integer)
-  (print integer))
+(define-opcode #x0f prn (address)
+  (print (elt (memory vm) address)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 2OP
