@@ -59,17 +59,31 @@
   (push (pc vm) (stack vm))
   (setf (pc vm) addr))
 
-(define-opcode #x05 inc (arg))
+(define-opcode #x05 inc (arg)
+  (incf (elt (memory vm) arg)))
 
-(define-opcode #x06 dec (arg))
+(define-opcode #x06 dec (addr)
+  (decf (elt (memory vm) addr)))
 
-(define-opcode #x07 not (arg))
+(define-opcode #x07 not (arg)
+  (setf (elt (memory vm) arg) (lognot (elt (memory vm) arg))))
 
-(define-opcode #x08 jmp (address))
+(define-opcode #x08 jmp (address)
+  (setf (pc vm) address))
 
-(define-opcode #x09 je (address))
+;; presumably these use either registers (TBI) or stack (implemented)
 
-(define-opcode #x0a jne (address))
+;; we'll go with stack for now because it's simpler, as using
+;; registers requires deciding where they will reside, and
+;; implementing MOV
+
+(define-opcode #x09 je (address)
+  (when (= (pop (stack vm)) (pop (stack vm)))
+    (setf (pc vm) address)))
+
+(define-opcode #x0a jne (address)
+  (when (/= (pop (stack vm)) (pop (stack vm)))
+    (setf (pc vm) address)))
 
 (define-opcode #x0b jg (address))
 
