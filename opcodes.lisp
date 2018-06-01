@@ -2,6 +2,7 @@
 
 (in-package #:cl-microvm)
 
+;; when the opcode is executed the PC is already past the operands
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; OPCODES
