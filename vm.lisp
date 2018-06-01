@@ -19,8 +19,10 @@
   ((memory    :accessor memory    :initform (make-array '(#xffff)))
    (stack     :accessor stack     :initform (list))
    (registers :accessor registers :initform (make-array '(16)))
-   (pc        :accessor pc        :initarg  :pc :initform 0)))
+   (pc        :accessor pc        :initarg  :pc                    :initform 0))
+  (:documentation "A virtual machine."))
 
+;; TODO
 ;; we'll do some magic and forbid access to the lowest 256 bytes of memory
 ;; we can use that for program metadata, such as the start position
 ;; we'll also make it so 0-15 refer to the 16 registers, 16 to the result register
