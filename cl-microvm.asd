@@ -10,4 +10,5 @@
                (:file "utils")
                (:file "vm")
                (:file "opcodes")
+               (:file "assembler")
                (:file "cl-microvm")))
