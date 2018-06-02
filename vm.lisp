@@ -16,7 +16,7 @@
 ;; bytes/words
 
 (defclass microvm ()
-  ((memory    :accessor memory    :initform (make-array '(#xffff)))
+  ((memory    :accessor memory    :initform (make-array '(#xffff) :element-type '(unsigned-byte 8)))
    (stack     :accessor stack     :initform (list))
    (registers :accessor registers :initform (make-array '(16)))
    (pc        :accessor pc        :initarg  :pc                    :initform 0))
