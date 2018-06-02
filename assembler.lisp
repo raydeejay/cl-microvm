@@ -2,45 +2,67 @@
 
 (in-package #:cl-microvm)
 
-(defmacro assemble-operand (instructions)
-  `(let ((arg (car ,instructions)))
-     (when (keywordp arg)
-       (setf arg (gethash arg *labels*)))
-     (setf ,instructions (cdr ,instructions))
-     (if (< arg 256)
-         (list arg)
-         (progn ;; modify opcode if necessary
-           (setf instr (cons (logior (car instr) #b10000000) (cdr instr)))
-           (list (shr arg 8 8) (logand #xff arg))))))
-
 (defun assemble% (instructions)
-  (loop :with *labels* := (make-hash-table)
-     :for mnemonic := (car instructions)
-     :while mnemonic
+  (macrolet ((assemble-operand (instructions)
+               `(let ((arg (car ,instructions)))
+                  (when (keywordp arg)
+                    (setf arg (gethash arg label-table)))
+                  (setf ,instructions (cdr ,instructions))
+                  (if (< arg 256)
+                      (list arg)
+                      (progn ;; modify opcode if necessary
+                        (setf instr (cons (logior (car instr) #b10000000) (cdr instr)))
+                        (list (shr arg 8 8) (logand #xff arg)))))))
+    (loop :with label-table := (make-hash-table)
+       ;; grab the first available symbol
+       :for mnemonic := (car instructions)
 
-     :for opcode := (or (position mnemonic *opcode-names*) -1)
-     :for instr := (list)
+       ;; go ahead and try to determine the opcode
+       :for opcode := (or (position mnemonic *opcode-names*) -1)
 
-     :if (keywordp mnemonic)
-     :do (setf (gethash mnemonic *labels*) (length bytes))
-     :else
-     ;; :collect opcode :into bytes
-     :do (push opcode instr)
-     :end
+       ;; begin with an empty instruction
+       :for instr := (list)
 
-     :do (setf instructions (cdr instructions))
+       ;; stop when we reach the end of the code
+       :while mnemonic
 
-     :when (< 1 opcode 32)
-     ;; :append (assemble-operand instructions) :into bytes
-     :do (nconc instr (assemble-operand instructions))
+       ;; move to the next symbol
+       :do (setf instructions (cdr instructions))
 
-     :when (< 15 opcode)
-     ;; :append (assemble-operand instructions) :into bytes
-     :do (nconc instr (assemble-operand instructions))
+       ;; if we find a keyword, record the position of a label
+       :if (keywordp mnemonic)
+       :do (setf (gethash mnemonic label-table) (length bytes))
+       :else
+       ;; if it's an assembler directive, process it
+       :if (char-equal #\. (elt (symbol-name mnemonic) 0))
+       :do (case mnemonic
+             (.DS (let ((str (map 'list #'char-code (car instructions))))
+                    (setf instr (cons (length str) str)))
+                  (setf instructions (cdr instructions)))
+             (.DB (setf instr (list (car instructions)))
+                  (setf instructions (cdr instructions)))
+             (.DW (let ((num (car instructions)))
+                    (setf instr (list (shr num 8 8)
+                                      (logand #xff num))))
+                  (setf instructions (cdr instructions))))
+       :else
+       ;; it's an operator and we have an opcode
+       :do (push opcode instr)
+       :end
+       :end
 
-     :append instr :into bytes
+       ;; grab a parameter if this is a 2OP instruction
+       :when (< 1 opcode 32)
+       :do (nconc instr (assemble-operand instructions))
 
-     :finally (return bytes)))
+       ;; grab a parameter if this is a 1OP/2OP instruction
+       :when (< 15 opcode)
+       :do (nconc instr (assemble-operand instructions))
+
+       ;; add the assembled instruction to the current run of bytes
+       :append instr :into bytes
+
+       :finally (return bytes))))
 
 (defmacro asm (&rest args)
   `(assemble% ',args))
