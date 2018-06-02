@@ -95,7 +95,7 @@
 
 (define-opcode #x0e prs (address)
   (let ((len (elt (memory vm) address)))
-    (print (map 'string #'code-char (subseq (memory vm) (1+ address) (+ 1 address len))))))
+    (format t "~A~%" (map 'string #'code-char (subseq (memory vm) (1+ address) (+ 1 address len))))))
 
 (define-opcode #x0f prn (address)
   (princ (fetch-byte vm address)))
