@@ -91,7 +91,11 @@
 
 (define-opcode #x0d jl (address))
 
-(define-opcode #x0e jle (address))
+;; (define-opcode #x0e jle (address))
+
+(define-opcode #x0e prs (address)
+  (let ((len (elt (memory vm) address)))
+    (print (map 'string #'code-char (subseq (memory vm) (1+ address) (+ 1 address len))))))
 
 (define-opcode #x0f prn (address)
   (print (elt (memory vm) address)))
