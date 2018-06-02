@@ -38,7 +38,7 @@ advancing the program counter by q."
 advancing the program counter by 2."
   (prog1 (+ (shl (elt (memory vm) address) 16 8)
             (elt (memory vm) (1+ address)))
-    (when advance (incf (pc vm)) 2)))
+    (when advance (incf (pc vm) 2))))
 
 (defmethod load-code ((vm microvm) bytes &optional (address 0))
   "Load code from a list of bytes into the VM memory, at a given
@@ -50,29 +50,28 @@ address."
 (defmethod cycle ((vm microvm))
   "Execute one instruction."
   (let* ((byte (prog1 (elt (memory vm) (pc vm)) (incf (pc vm))))
-         (opcode (logand #b00011111 byte))
-         (fetch-arg (if (logbitp 7 byte) #'fetch-word #'fetch-byte)))
+         (opcode (logand #b00011111 byte)))
     (cond ((zerop (logand #b01111110 opcode)) ; 0OP
            (funcall (elt *opcodes* opcode) vm))
           ((zerop (logand #b00010000 opcode)) ; 1OP
            (funcall (elt *opcodes* opcode) vm
-                    (funcall fetch-arg vm
-                             (case (shr opcode 1 6)
-                               (#b0 (pc vm))
-                               (#b1 (funcall fetch-arg vm (pc vm))))
-                             :advance t)))
+                    (fetch-word vm
+                                (case (shr opcode 1 6)
+                                  (#b0 (pc vm))
+                                  (#b1 (fetch-word vm (pc vm))))
+                                :advance t)))
           (t                            ; 2OP
            (funcall (elt *opcodes* opcode) vm
-                    (funcall fetch-arg vm
-                             (case (shr opcode 1 6)
-                               (#b0 (pc vm))
-                               (#b1 (funcall fetch-arg vm (pc vm))))
-                             :advance t)
-                    (funcall fetch-arg vm
-                             (case (shr opcode 1 6)
-                               (#b0 (pc vm))
-                               (#b1 (funcall fetch-arg vm (pc vm))))
-                             :advance t))))))
+                    (fetch-word vm
+                                (case (shr opcode 1 6)
+                                  (#b0 (pc vm))
+                                  (#b1 (fetch-word vm (pc vm))))
+                                :advance t)
+                    (fetch-word vm
+                                (case (shr opcode 1 5)
+                                  (#b0 (pc vm))
+                                  (#b1 (fetch-word vm (pc vm))))
+                                :advance t))))))
 
 (defmethod run ((vm microvm) &optional (address 0))
   "Execute code until the opcode is RET when the stack is empty."

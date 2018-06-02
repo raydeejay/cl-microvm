@@ -6,14 +6,19 @@
   (macrolet ((assemble-operand (instructions)
                `(let ((arg (car ,instructions)))
                   (when (keywordp arg)
-                    (setf arg (gethash arg label-table)))
+                    ;; (setf arg (gethash arg label-table))
+                    ;; record the address of the reference to a label
+                    (push (+ (length bytes) (length instr))
+                          (gethash arg references))
+                    ;; reserve space for the actual address
+                    (setf arg #xffff))
                   (setf ,instructions (cdr ,instructions))
-                  (if (< arg 256)
-                      (list arg)
-                      (progn ;; modify opcode if necessary
-                        (setf instr (cons (logior (car instr) #b10000000) (cdr instr)))
-                        (list (shr arg 8 8) (logand #xff arg)))))))
-    (loop :with label-table := (make-hash-table)
+                  (list (shr arg 8 8) (logand #xff arg)))))
+    (loop
+       ;; keep track of the labels
+       :with label-table := (make-hash-table)
+       :with references := (make-hash-table)
+
        ;; grab the first available symbol
        :for mnemonic := (car instructions)
 
@@ -62,7 +67,15 @@
        ;; add the assembled instruction to the current run of bytes
        :append instr :into bytes
 
-       :finally (return bytes))))
+       :finally (return ;;bytes
+                        (return (resolve-labels bytes references label-table))
+                        ))))
+
+(defun resolve-labels (bytes references label-table)
+  (loop :for label :being :the :hash-keys :in label-table :using (:hash-value addr)
+     :do (loop :for reference :in (gethash label references) :do
+            (setf (nth reference bytes) (shr addr 8 8)
+                  (nth (1+ reference) bytes) (logand #xff addr)))))
 
 (defmacro asm (&rest args)
   `(assemble% ',args))

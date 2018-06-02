@@ -98,7 +98,7 @@
     (print (map 'string #'code-char (subseq (memory vm) (1+ address) (+ 1 address len))))))
 
 (define-opcode #x0f prn (address)
-  (print (elt (memory vm) address)))
+  (print (fetch-word vm address)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 2OP
