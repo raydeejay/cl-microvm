@@ -72,7 +72,8 @@
   (loop :for label :being :the :hash-keys :in label-table :using (:hash-value addr)
      :do (loop :for reference :in (gethash label references) :do
             (setf (nth reference bytes) (shr addr 8 8)
-                  (nth (1+ reference) bytes) (logand #xff addr)))))
+                  (nth (1+ reference) bytes) (logand #xff addr)))
+     :finally (return bytes)))
 
 (defmacro asm (&rest args)
   `(assemble% ',args))
