@@ -6,7 +6,6 @@
   (macrolet ((assemble-operand (instructions)
                `(let ((arg (car ,instructions)))
                   (when (keywordp arg)
-                    ;; (setf arg (gethash arg label-table))
                     ;; record the address of the reference to a label
                     (push (+ (length bytes) (length instr))
                           (gethash arg references))
@@ -67,9 +66,7 @@
        ;; add the assembled instruction to the current run of bytes
        :append instr :into bytes
 
-       :finally (return ;;bytes
-                        (return (resolve-labels bytes references label-table))
-                        ))))
+       :finally (return (resolve-labels bytes references label-table)))))
 
 (defun resolve-labels (bytes references label-table)
   (loop :for label :being :the :hash-keys :in label-table :using (:hash-value addr)
